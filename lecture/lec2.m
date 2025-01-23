@@ -18,7 +18,7 @@ clc;
 %% lec2 %%
 % get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example')
+patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
 
 folders = dir(sprintf('%s\\', patientDataFolder));
 
