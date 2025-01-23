@@ -10,12 +10,12 @@
 % 4. size()
 % 5. contains() : str 포함 여부
 
-%%
+
 clear all;
 close all;
 clc;
 
-%%
+%% lec2 %%
 % get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
 patientDataFolder = strcat(workingFolder, '\data', '\patient-example')
@@ -28,7 +28,6 @@ for ff = 1:size(folders, 1)
     end
 end
 
-%%
 % get DICOM files
 files = dir(sprintf('%s\\*.dcm', CTFolder));
 
@@ -38,5 +37,5 @@ for ff = 1:size(files, 1)
     info = dicominfo(filename);
     sliceLocation = info.SliceLocation;
 
-    fprintf('Slice location = %.1f\n', sliceLocation)
+    fprintf('Slice location = %.1f\n', sliceLocation);
 end

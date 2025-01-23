@@ -10,11 +10,11 @@
 % 4. xlabel(), ylabel(), title()
 % 5. print() : fig img 파일로 저장      '-djpeg':jpeg 형태, '-r300': 해상도 300 (논문 300~600)
 
-%% 1.
+%%% 1.
 % dicominfo : header
 % dicomread : data
 
-%% 2.
+%%% 2.
 % DIMCOM 영상 좌표 설정에 필요한 값
 % Origin    : 기준 픽셀 위치 (가장 작은 픽셀)    -> 오-왼, inter-poster / 강의에서는 좌상단
 % Spacing   : 픽셀 크기/간격
@@ -22,12 +22,11 @@
 
 % clim([cmin, cmax]) : like truncate    -> caxis() in octave
 
-%%
+
 clear all;
 close all;
 clc;
 
-%%
 % get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
 patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
@@ -40,7 +39,6 @@ for ff = 1:size(folders, 1) % dim=1
     end
 end
 
-%%
 % get DICOM files
 files = dir(sprintf('%s\\*.dcm', CTFolder));
 
@@ -52,6 +50,7 @@ for ff = 1:1%size(files, 1)
 
     fprintf('Slice location = %.1f\n', sliceLocation);
 
+    %% lec3 %%
     % get header information to create coordinates
     image = dicomread(info);
 

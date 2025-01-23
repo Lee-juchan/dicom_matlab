@@ -9,21 +9,20 @@
 % 2. squeeze()
 % 3. double()
 
-%% 1.
+%%% 1.
 % raw value:    CT scanner가 측정한 값 (DICOM 이미지의 픽셀 값)
 % CT number:    조직의 밀도 정보를 나타내는 값 (HU 단위)                (CT number = (rescale slope * raw value) + rescale intercept)
 
 % HU (Hounsfield Unit): 물을 기준으로 조직의 밀도 차이를 나타내는 단위  (water=0, air=-1000, fat=-120~-90, soft tissue=100~300, bone≈300~1900)
 
-%% 2.
+%%% 2.
 % Window:   CT 이미지에서 표시할 HU 범위    (= Window Width, WW)  -> high constrast = narrow window
 % Level:    window(HU)의 중심 값          (= Window Center, WC)
 
 % lower limit = level - (1/2) * window
 % upper limit = level + (1/2) * window
 
-%%
-% 3.
+%%% 3.
 % [V, spatial] = dicomreadVolume(__path)
 
 % spactial
@@ -32,15 +31,14 @@
 % PatientOrientations: [2x3x337 double] : 각 이미지의 회전 방향 (MR 필수)
 % ImageSize: [512 512 337]              : 각 이미지 크기
 
-%%
+
 clear all;
 close all;
 clc;
 
-%%
 % get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example')
+patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
 
 folders = dir(sprintf('%s\\', patientDataFolder));
 
@@ -50,7 +48,7 @@ for ff = 1:size(folders, 1)
     end
 end
 
-%%
+%% lec4 %%
 % load image volume
 [image, spatial] = dicomreadVolume(CTFolder);   % 4d (512, 512, 1, 337)
 image = squeeze(image);                         % 1인 차원 제거 -> (1, 5)??
@@ -75,9 +73,11 @@ for ff = 1:1%size(files, dim=1)
 
     fprintf('Slice location = %.1f\n', sliceLocation);
 
+    %% lec4 %%
     image_raw = dicomread(info);
     image = image_raw*rescaleSlope + rescaleIntercept;     % raw value -> CT number
 
+    %%
     % get header information to create coordinates
     image_origin = info.ImagePositionPatient;
     image_spacing = info.PixelSpacing;
@@ -94,6 +94,7 @@ for ff = 1:1%size(files, dim=1)
         y(jj) = image_origin(2) + image_spacing(2)*(jj-1);
     end
 
+    %% lec4 %%
     % set window, level
     window = 350;
     level = 50;
@@ -101,6 +102,7 @@ for ff = 1:1%size(files, dim=1)
     lower_limit = level - 0.5*window;
     upper_limit = level + 0.5*window;
 
+    %%
     % plot
     figure('Color', 'w');
     imagesc(x,y, image); % -> x, y 좌표가 이미지에 표시됨 (-250 ~ 250)
