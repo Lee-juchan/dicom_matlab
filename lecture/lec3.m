@@ -15,7 +15,7 @@
 % dicomread : data
 
 %% DIMCOM 영상 좌표 설정에 필요한 값
-% Origin    : 기준 픽셀 위치 (코너 픽셀)    -> 오-왼, inter-poster / 강의에서는 좌상단
+% Origin    : 기준 픽셀 위치 (가장 작은 픽셀)    -> 오-왼, inter-poster / 강의에서는 좌상단
 % Spacing   : 픽셀 크기/간격
 % Size      : 픽셀의 수
 

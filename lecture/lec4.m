@@ -66,8 +66,16 @@ end
 
 %%%%%%%%
 % load image volume
-[image, spatial] = dicomreadVolume(CTFolder);
+[image, spatial] = dicomreadVolume(CTFolder);   % 4d
 
+image = squeeze(image); % 1인 차원 제거
+
+% get origin, spacing, size
+image_origin = spatial.PatientPositions(1,:);
+image_spacing = spatial.PixelSpacings(1,:); % x,y 간격
+image_spacing = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3); % z 간격
+image_size = size(image);
+% image_size = spatial.ImageSize
 %%%%%%%%
 
 
