@@ -1,2 +1,3 @@
 Pixel Spacing: 0.977, 0.977
-Pixel Spacing: 0.977, 0.977
+Patient Name: DOE, JANE
+Width: 512

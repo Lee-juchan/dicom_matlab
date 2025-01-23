@@ -5,38 +5,25 @@
 
 % 🌟 주요 MATLAB 함수
 % 1. dir()
-% 2. sprintf()
+% 2. sprintf() : str print (결과: 문자열) <-> fprintf (결과: bytes)
 % 3. for/if statement
 % 4. size()
-% 5. contains()
+% 5. contains() : str 포함 여부
 
+%%
 clear all;
 close all;
 clc;
 
-
-%% for octave
-pkg load dicom; % for /octave
-
-% contains()
-function [res] = contains(str, pattern)
-    if iscell(str)
-        res = cellfun(@(s) ~isempty(strfind(s, pattern)), str);
-    else
-        res = ~isempty(strfind(str, pattern));
-    end
-end
 %%
-
-
+% get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
 patientDataFolder = strcat(workingFolder, '\data', '\patient-example')
 
-% get CT Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));      % sprintf : string print, 결과는 문자열, fprintf는 bytes 값
+folders = dir(sprintf('%s\\', patientDataFolder));
 
-for ff = 1:size(folders, dim=1)
-    if contains(folders(ff).name, 'CT') % CT 포함된 폴더                % contains() : str 포함 여부
+for ff = 1:size(folders, 1)
+    if contains(folders(ff).name, 'CT') % 'CT' 포함된 폴더
         CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
     end
 end
@@ -45,7 +32,7 @@ end
 % get DICOM files
 files = dir(sprintf('%s\\*.dcm', CTFolder));
 
-for ff = 1:size(files, dim=1)
+for ff = 1:size(files, 1)
     filename =  sprintf('%s\\%s', files(ff).folder, files(ff).name);
     
     info = dicominfo(filename);
@@ -53,4 +40,3 @@ for ff = 1:size(files, dim=1)
 
     fprintf('Slice location = %.1f\n', sliceLocation)
 end
-%%

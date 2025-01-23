@@ -11,74 +11,57 @@
 
 %% 1.
 % raw value:    CT scanner가 측정한 값 (DICOM 이미지의 픽셀 값)
-% CT number:    조직의 밀도 정보를 나타내는 값 (HU 단위)
+% CT number:    조직의 밀도 정보를 나타내는 값 (HU 단위)                (CT number = (rescale slope * raw value) + rescale intercept)
 
-%   CT number = (rescale slope * raw value) + rescale intercept
-
-% HU (Hounsfield Unit): 물을 기준으로 조직의 밀도 차이를 나타내는 단위
-%                       (water=0, air=-1000, fat=-120~-90, soft tissue=100~300, bone≈300~1900)
-
+% HU (Hounsfield Unit): 물을 기준으로 조직의 밀도 차이를 나타내는 단위  (water=0, air=-1000, fat=-120~-90, soft tissue=100~300, bone≈300~1900)
 
 %% 2.
-% Window:   CT 이미지에서 표시할 HU 범위    (Window Width, WW)  -> high constrast = narrow window
-% Level:    window(HU)의 중심 값          (Window Center, WC)
+% Window:   CT 이미지에서 표시할 HU 범위    (= Window Width, WW)  -> high constrast = narrow window
+% Level:    window(HU)의 중심 값          (= Window Center, WC)
 
 % lower limit = level - (1/2) * window
 % upper limit = level + (1/2) * window
 
-% -> using clim()
-
-
+%%
 % 3.
 % [V, spatial] = dicomreadVolume(__path)
 
+% spactial
+% PatientPositions: [337x3 double]      : 각 이미지의 ImagePositionPatient (origin 값)
+% PixelSpacings: [337x2 double]         : 각 이미지의 픽셀 간격
+% PatientOrientations: [2x3x337 double] : 각 이미지의 회전 방향 (MR 필수)
+% ImageSize: [512 512 337]              : 각 이미지 크기
 
+%%
 clear all;
 close all;
 clc;
 
-
-%% for octave
-pkg load dicom; % for /octave
-
-% contains()
-function [res] = contains(str, pattern)
-    if iscell(str)
-        res = cellfun(@(s) ~isempty(strfind(s, pattern)), str);
-    else
-        res = ~isempty(strfind(str, pattern));
-    end
-end
 %%
-
-
+% get CT Folder from patient folder
 workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
 patientDataFolder = strcat(workingFolder, '\data', '\patient-example')
 
-% get CT Folder from patient folder
 folders = dir(sprintf('%s\\', patientDataFolder));
 
-for ff = 1:size(folders, dim=1)
+for ff = 1:size(folders, 1)
     if contains(folders(ff).name, 'CT')
         CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
     end
 end
 
-%%%%%%%%
+%%
 % load image volume
-[image, spatial] = dicomreadVolume(CTFolder);   % 4d
-
-image = squeeze(image); % 1인 차원 제거
+[image, spatial] = dicomreadVolume(CTFolder);   % 4d (512, 512, 1, 337)
+image = squeeze(image);                         % 1인 차원 제거 -> (1, 5)??
 
 % get origin, spacing, size
 image_origin = spatial.PatientPositions(1,:);
 image_spacing = spatial.PixelSpacings(1,:); % x,y 간격
-image_spacing = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3); % z 간격
-image_size = size(image);
-% image_size = spatial.ImageSize
-%%%%%%%%
+image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3); % z 간격
+image_size = spatial.ImageSize; % = size(image);
 
-
+%%
 % get DICOM files
 files = dir(sprintf('%s\\*.dcm', CTFolder));
 
@@ -124,9 +107,8 @@ for ff = 1:1%size(files, dim=1)
     colormap('gray');
     axis equal;
     axis tight;
-    caxis([lower_limit, upper_limit]); % window 지정 (clim for mat)
+    clim([lower_limit, upper_limit]);
     xlabel('R-L distance (mm)', 'Fontsize', 20);
     ylabel('A-P distance (mm)', 'Fontsize', 20);
     title('Axial view');
 end
-
