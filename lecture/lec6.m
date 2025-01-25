@@ -15,9 +15,9 @@
 % rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_180   % (CumulativeMetersetWeight = 1)
 
 % % MLC - Y-jaw : 서로 수직방향
-% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_1.LeafJawPositions % [-200, 200] : X-jaw 없음
-% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_2.LeafJawPositions % [-15, 20] : Y-jaw Position
-% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_3.LeafJawPositions % MLC position
+% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_1.LeafJawPositions    % X-jaw position : [-200, 200] 없음
+% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_2.LeafJawPositions    % Y-jaw Position : [-15, 20]
+% rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_3.LeafJawPositions    % MLC position   : ...
 
 
 clear all;
