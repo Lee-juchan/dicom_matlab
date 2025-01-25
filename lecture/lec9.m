@@ -44,16 +44,16 @@ folders = dir(sprintf('%s\\', patientDataFolder));
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTPLAN_')
-        RTPLANFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        RTPlanFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
     end
 end
 
-files = dir(sprintf('%s\\*.dcm', RTPLANFolder));
-RTPLANFile = sprintf('%s\\%s', files(1).folder, files(1).name);
+files = dir(sprintf('%s\\*.dcm', RTPlanFolder));
+RTPlanFile = sprintf('%s\\%s', files(1).folder, files(1).name);
 
 
 % reading RT Plan
-rtplan_info = dicominfo(RTPLANFile);
+rtplan_info = dicominfo(RTPlanFile);
 
 beamSequence = rtplan_info.BeamSequence;
 fieldnames_beamSequence = fieldnames(beamSequence); % beam의 수 만큼 나옴
