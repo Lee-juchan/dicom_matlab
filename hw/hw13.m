@@ -175,28 +175,26 @@ for roi = 1:nROIs_selected
     % slice별 mask, contour
     for zz = min(z_roi):max(z_roi)
 
-        % idx
-        z_roi_index = find(z_roi == zz);
-        z_mask_index = find(z_mask == zz);
-        
-        % calc
-        mask_selected = mask(:,:, z_mask_index); % mask
+        % plot mask
+        z_index = find(z_mask == zz); % 전체 CT의 z좌표 == 현 slice의 z좌표
 
-        contourData_slice = contourData_selected{z_roi_index}; % contour
+        nexttile;
+        hold on;
+        imagesc(x_mask, y_mask, mask(:,:,z_index));
+        colormap('gray');
+        set(gca, 'YDir', 'reverse')
+        axis equal
+        axis([20 70 -10 40]);
+        title(sprintf('z = %.1f', zz), 'FontSize', 12);
+
+
+        % plot contour
+        z_roi_index = find(z_roi == zz);
+
+        contourData_slice = contourData_selected{z_roi_index};
         contourData_slice(end+1, :) = contourData_slice(1,:);
         x = contourData_slice(:, 1);
         y = contourData_slice(:, 2);
-
-
-        % plot
-        nexttile;
-        hold on;
-        title(sprintf('z = %.1f', zz), 'FontSize', 12);
-        axis([20 70 -10 40]);
-        
-        imagesc(x_mask,y_mask, mask(:,:,z_mask_index)); % mask
-        colormap('gray');
-        axis equal;
         
         plot(x, y, 'color', color_selected/255, 'linewidth', 2.0); % contour
         hold off;
