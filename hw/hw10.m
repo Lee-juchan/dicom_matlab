@@ -7,20 +7,19 @@ close all;
 clc;
 
 
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
 % get RT structure Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTst_')
-        RTStFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
-files = dir(sprintf('%s\\*.dcm', RTStFolder));
-RTStFile = sprintf('%s\\%s', files(1).folder, files(1).name);
+files = dir(fullfile(RTStFolder, '*.dcm'));
+RTStFile = fullfile(files(1).folder, files(1).name);
 
 
 % reading RT Structure

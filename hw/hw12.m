@@ -9,28 +9,26 @@ close all;
 clc;
 
 
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
-
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
 % get CT and RT Dose Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTDOSE_')
-        RTDoseFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);   % RT Dose
+        RTDoseFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
     elseif contains(folders(ff).name, '_RTPLAN_')
-        RTPLANFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        RTPLANFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
 if exist(RTDoseFolder, 'dir')
-    files_rtdose = dir(sprintf('%s\\*.dcm', RTDoseFolder));
+    files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
 end
 RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name); % 지훈킴이 if exist, fullfile 사용
 
 if exist(RTPLANFolder, 'dir')
-    files_rtplan = dir(sprintf('%s\\*.dcm', RTPLANFolder));
+    files_rtplan = dir(fullfile(RTPLANFolder, '*.dcm'));
 end
 RTPLANFile = fullfile(files_rtplan(1).folder, files_rtplan(1).name);
 

@@ -7,16 +7,13 @@ clc;
 
 %%
 % get CT Folder from patient folder
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-PatientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
-folders = dir(sprintf('%s\\', PatientDataFolder));
+folders = dir(patientDataFolder);
 RTFolder = {}; % cell array 사용
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, 'RT') % CT 포함된 폴더
-    RTFolder{end + 1} = [sprintf('%s\\%s', folders(ff).folder, folders(ff).name)];
+    RTFolder{end + 1} = [fullfile(folders(ff).folder, folders(ff).name)];
     end
 end
-
-RTFolder

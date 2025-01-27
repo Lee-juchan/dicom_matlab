@@ -24,37 +24,36 @@ clear all;
 close all;
 clc;
 
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
 
 % get CT, RT Structure, RT Plan, RT Dose Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_CT_')
-        CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);     % CT
+        CTFolder = fullfile(folders(ff).folder, folders(ff).name);     % CT
     elseif contains(folders(ff).name, '_RTst')
-        RTStFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);   % RT structure
+        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT structure
     elseif contains(folders(ff).name, '_RTPLAN_')
-        RTPlanFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);   % RT plan
+        RTPlanFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT plan
     elseif contains(folders(ff).name, '_RTDOSE_')
-        RTDoseFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);   % RT Dose
+        RTDoseFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
     end
 end
 
 if exist(RTStFolder, 'dir')
-    files_rtdose = dir(sprintf('%s\\*.dcm', RTStFolder));
+    files_rtdose = dir(fullfile(RTStFolder, '*.dcm'));
 end
 RTStFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 
 if exist(RTPlanFolder, 'dir')
-    files_rtplan = dir(sprintf('%s\\*.dcm', RTPlanFolder));
+    files_rtplan = dir(fullfile(RTPlanFolder, '*.dcm'));
 end
 RTPlanFile = fullfile(files_rtplan(1).folder, files_rtplan(1).name);
 
 if exist(RTDoseFolder, 'dir')
-    files_rtdose = dir(sprintf('%s\\*.dcm', RTDoseFolder));
+    files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
 end
 RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 

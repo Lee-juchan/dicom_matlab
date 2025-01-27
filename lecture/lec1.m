@@ -15,7 +15,9 @@ clc;
 
 %% lec1 %%
 % get information from DICOM CT file
-filename = 'C:\Users\DESKTOP\workspace\DICOM_matlab\data\test.dcm';
+
+filename = fullfile(pwd, 'data', 'test.dcm');
+
 info = dicominfo(filename);
 
 PixelSpacing = info.PixelSpacing;
@@ -31,7 +33,7 @@ fprintf('Patient Name: %s, %s\n',PatientFamilyName,PatientGivenName);
 fprintf('Width: %d\n',Width);
 
 % 2. to a text file
-fid = fopen('C:\Users\DESKTOP\workspace\DICOM_matlab\data\test.txt','w');
+fid = fopen(fullfile(pwd, 'data', 'test.txt'), 'w');
 
 fprintf(fid,'Pixel Spacing: %.3f, %.3f\n',PixelSpacing);
 fprintf(fid,'Patient Name: %s, %s\n',PatientFamilyName,PatientGivenName);

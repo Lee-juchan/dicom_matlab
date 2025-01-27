@@ -13,21 +13,19 @@ clear all;
 close all;
 clc;
 
-
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
 % get RT Plan Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTPLAN_')
-        RTPLANFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        RTPLANFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
-files = dir(sprintf('%s\\*.dcm', RTPLANFolder));
-RTPLANFile = sprintf('%s\\%s', files(1).folder, files(1).name);
+files = dir(fullfile(RTPLANFolder, '*.dcm'));
+RTPLANFile = fullfile(files(1).folder, files(1).name);
 
 
 % reading RT Plan

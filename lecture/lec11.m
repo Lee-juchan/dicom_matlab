@@ -14,23 +14,22 @@ close all;
 clc;
 
 
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
 %%
 % get CT and RT structure Folder from patient folder
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_CT_')
-        CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);     % CT
+        CTFolder = fullfile(folders(ff).folder, folders(ff).name);     % CT
     elseif contains(folders(ff).name, '_RTst_')
-        RTStFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);   % RT Structure
+        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Structure
     end
 end
 
-files = dir(sprintf('%s\\*.dcm', RTStFolder));
-RTStFile = sprintf('%s\\%s', files(1).folder, files(1).name);
+files = dir(fullfile(RTStFolder, '*.dcm'));
+RTStFile = fullfile(files(1).folder, files(1).name);
 
 % reading CT (3d volumne)
 [image, spatial, dim] = dicomreadVolume(CTFolder);

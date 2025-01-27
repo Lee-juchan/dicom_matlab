@@ -7,14 +7,13 @@ close all;
 clc;
 
 % get CT Folder from patient folder
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, 'CT')
-        CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        CTFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
@@ -79,5 +78,5 @@ ylabel('I-S distance (mm)', 'Fontsize', 12);
 title('Coronal', 'FontSize', 12);
 
 % save fig
-filename = sprintf('%s\\data\\hw5.jpg', workingFolder);
+filename = fullfile(pwd, 'data', 'hw5.jpg');
 print(filename, '-djpeg', '-r300');

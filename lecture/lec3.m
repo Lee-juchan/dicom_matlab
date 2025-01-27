@@ -28,22 +28,21 @@ close all;
 clc;
 
 % get CT Folder from patient folder
-workingFolder = 'C:\Users\DESKTOP\workspace\DICOM_matlab';
-patientDataFolder = strcat(workingFolder, '\data', '\patient-example');
+patientDataFolder = fullfile(pwd, 'data', 'patient-example');
 
-folders = dir(sprintf('%s\\', patientDataFolder));
+folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1) % dim=1
     if contains(folders(ff).name, 'CT')
-        CTFolder = sprintf('%s\\%s', folders(ff).folder, folders(ff).name);
+        CTFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
 % get DICOM files
-files = dir(sprintf('%s\\*.dcm', CTFolder));
+files = dir(fullfile(CTFolder, '*.dcm'));
 
 for ff = 1:1%size(files, 1)
-    filename =  sprintf('%s\\%s', files(ff).folder, files(ff).name);
+    filename =  fullfile(files(ff).folder, files(ff).name);
     
     info = dicominfo(filename);
     sliceLocation = info.SliceLocation;
@@ -81,6 +80,6 @@ for ff = 1:1%size(files, 1)
     title('Axial view');
 
     % save file
-    fig_filename = sprintf('%s\\data\\lec3_ct.jpg', workingFolder);
+    fig_filename = fullfile(pwd, 'data', 'lec3.jpg');
     print(fig_filename, '-djpeg', '-r300');
 end
