@@ -5,20 +5,19 @@
 
 % 🌟 주요 MATLAB 함수
 % 1. dir()
-% 2. sprintf() : str print (결과: 문자열) <-> fprintf (결과: bytes)
-% 3. for/if statement
+% 2. sprintf()  : str print (결과: 문자열) <-> fprintf (결과: bytes)
+% 3. for/if
 % 4. size()
 % 5. contains() : str 포함 여부
-
+%%
 
 clear all;
 close all;
 clc;
 
-%% lec2 %%
-% get CT Folder from patient folder
+%% lec 2 %%
+% folders (CT)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -27,14 +26,15 @@ for ff = 1:size(folders, 1)
     end
 end
 
-% get DICOM files
+% files (.dcm)
 files = dir(fullfile(CTFolder, '*.dcm'));
 
 for ff = 1:size(files, 1)
     filename =  fullfile(files(ff).folder, files(ff).name);
     
+    % read
     info = dicominfo(filename);
-    sliceLocation = info.SliceLocation;
 
+    sliceLocation = info.SliceLocation;
     fprintf('Slice location = %.1f\n', sliceLocation);
 end

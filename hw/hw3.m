@@ -1,17 +1,13 @@
-% DICOM CT file 중 slice location이 -489.5인 file 찾아서 읽고, image로 저장
-% image를 plot할 때, x축과 y축의 범위를 각각 -150~150, -350~-50으로 한정
+% - slice location이 -984.5인 CT plot하고 저장
+% - x축범위=(-150~150), y축범위=(-350~-50)
+% -> axis([xmin xmax ymin ymax])
 
-% axis([xmin xmax ymin ymax])
-
-%%
 clear all;
 close all;
 clc;
 
-%%
-% get CT Folder from patient folder
+% folder (CT)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -20,17 +16,16 @@ for ff = 1:size(folders, 1)
     end
 end
 
-%%
-% get DICOM files
+% files (.dcm)
 files = dir(fullfile(CTFolder, '*.dcm'));
 
 for ff = 1:size(files, 1)
     filename =  fullfile(files(ff).folder, files(ff).name);
     
-    % get header information to create coordinates
+    %% hw 3 %%
+    % CT
     info = dicominfo(filename);
     sliceLocation = info.SliceLocation;
-
     
     if sliceLocation == -984.5
         image = dicomread(info);
@@ -39,7 +34,7 @@ for ff = 1:size(files, 1)
         image_spacing = info.PixelSpacing;
         image_size = size(image);
     
-        % define coordinates in x,y directions
+        % image coordinates
         x = zeros(image_size(1), 1);
         y = zeros(image_size(2), 1);
     
@@ -52,17 +47,16 @@ for ff = 1:size(files, 1)
     
         % plot
         figure('Color', 'w');
-        imagesc(x,y, image); % -> x, y 좌표가 이미지에 표시됨 (-250 ~ 250)
+        imagesc(x,y, image);
         colormap('gray');
-        axis equal;
-        axis tight;
+        axis equal tight;
         clim([2500, 4500]);
         axis([-150, 150, -350, -50])
         xlabel('R-L distance (mm)', 'Fontsize', 20);
         ylabel('A-P distance (mm)', 'Fontsize', 20);
         title('Axial view');
     
-        % save file
+        % save fig
         fig_filename = fullfile(pwd, 'data', 'hw3.jpg');
         print(fig_filename, '-djpeg', '-r300');
     end

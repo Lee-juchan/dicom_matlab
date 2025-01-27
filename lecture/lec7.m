@@ -6,14 +6,15 @@
 % 🌟 주요 MATLAB 함수
 % 1. zeros()
 % 2. for문
+%%
 
 % zeros(2) == zeros(2,2)
-
 
 clear all;
 close all;
 clc;
 
+%% lec 7 %%
 % zeros + for
 times_table_result = zeros(9,8);
 

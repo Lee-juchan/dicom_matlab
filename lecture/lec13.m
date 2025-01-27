@@ -11,7 +11,7 @@
 %       interp2(X,Y,V, xq,yq)   : meshgrid 필수
 %       interp3(X,Y,Z,V, xq,yq,zq)
 % 4. meshgrid
-
+%%
 
 % mask
 % DVH -> 전체 영역의 선량중에 특정 st에 대한 선량값만 추출
@@ -24,45 +24,32 @@ clear all;
 close all;
 clc;
 
+% folder, files (CT, RTst, RTDOSE)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-
-% get CT, RT Structure, RT Plan, RT Dose Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_CT_')
         CTFolder = fullfile(folders(ff).folder, folders(ff).name);     % CT
     elseif contains(folders(ff).name, '_RTst')
-        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT structure
-    elseif contains(folders(ff).name, '_RTPLAN_')
-        RTPlanFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT plan
+        RTstFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT structure
     elseif contains(folders(ff).name, '_RTDOSE_')
-        RTDoseFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
+        RTDOSEFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
     end
 end
 
-if exist(RTStFolder, 'dir')
-    files_rtdose = dir(fullfile(RTStFolder, '*.dcm'));
-end
-RTStFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
+files_rtst = dir(fullfile(RTstFolder, '*.dcm'));        % exist(RTstFolder, 'dir') 활용 가능
+files_rtdose = dir(fullfile(RTDOSEFolder, '*.dcm'));
 
-if exist(RTPlanFolder, 'dir')
-    files_rtplan = dir(fullfile(RTPlanFolder, '*.dcm'));
-end
-RTPlanFile = fullfile(files_rtplan(1).folder, files_rtplan(1).name);
-
-if exist(RTDoseFolder, 'dir')
-    files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
-end
-RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
+RTstFile = fullfile(files_rtst(1).folder, files_rtst(1).name);
+RTDOSEFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 
 
-% reading CT (3d volumne)
+% CT
 [image, spatial, dim] = dicomreadVolume(CTFolder);
 
 image = squeeze(image);
-image = image - 3614; % raw value -> CT number
+image = image - 3614; % for CT number
 
 image_origin = spatial.PatientPositions(1,:);
 image_spacing = spatial.PixelSpacings(1,:);
@@ -84,39 +71,40 @@ for kk = 1:image_size(3)
 end
 
 
-% reading RT Structure
-rtst_info = dicominfo(RTStFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
+% RT Structure
+rtst_info = dicominfo(RTstFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
 contour = dicomContours(rtst_info);
-ROIs = contour.ROIs;
+
+ROIs = contour.ROIs; % rois
 
 name = ROIs.Name;
 contourData = ROIs.ContourData; % 각 slice 수
 color = ROIs.Color;
 
-nRTStructure = size(ROIs, 1);
+nROIs = size(ROIs, 1);
 
-% get index for selected RT structure
+% selected ROI
 ROIname_selected = {'GTV'; 'ITV'; 'PTV 1250x4 Dmax~'};
 nROIs_selected = size(ROIname_selected, 1);
 
 index = zeros(nROIs_selected, 1);
 
 for roi = 1:nROIs_selected
-    for st = 1:nRTStructure
+    for st = 1:nROIs
         if strcmp(name{st, 1}, ROIname_selected{roi,1})
             index(roi, 1) = st;
         end
     end
 end
 
-% get contour data and color for selecte RT structure
+% contour (for selected ROI)
 roiData = struct([]);
 
 for roi = 1:nROIs_selected
     contourData_selected = contourData{index(roi, 1)};
     color_selected = color{index(roi, 1)};
 
-    z_roi = []; % ROI 마다 slice가 몇개 나올지 아직 모름
+    z_roi = [];
     nSlice = size(contourData_selected, 1);
 
     for ss = 1:nSlice
@@ -132,20 +120,19 @@ for roi = 1:nROIs_selected
 end
 
 
-% reading RT dose
-rtdose_info = dicominfo(RTDoseFile);
+% RT dose
+rtdose_info = dicominfo(RTDOSEFile);
 
 rtdose_data = dicomread(rtdose_info);
 rtdose_data = squeeze(rtdose_data);
 
-rtdose_origin = rtdose_info.ImagePositionPatient; % CT image와 상당히 유사
+rtdose_gridscaling = rtdose_info.DoseGridScaling;
+rtdose = rtdose_gridscaling * double(rtdose_data); % for real dose
+
+rtdose_origin = rtdose_info.ImagePositionPatient;
 rtdose_spacing(1:2) = rtdose_info.PixelSpacing;
 rtdose_spacing(3) = rtdose_info.SliceThickness;
 rtdose_size = size(rtdose_data);
-
-% to convert raw data -> dose
-rtdose_gridscaling = rtdose_info.DoseGridScaling;
-rtdose = rtdose_gridscaling * double(rtdose_data);
 
 x_rtdose = zeros(rtdose_size(2), 1);
 y_rtdose = zeros(rtdose_size(1), 1);
@@ -162,19 +149,17 @@ for kk = 1:rtdose_size(3)
 end
 
 
-%%
-% calculate mean doses
-[xxx_rtdose, yyy_rtdose, zzz_rtdose] = meshgrid(x_rtdose, y_rtdose, z_rtdose); % 3d grid 생성
+%% lec 13 %%
+% calc mean doses
+[X_rtdose, Y_rtdose, Z_rtdose] = meshgrid(x_rtdose, y_rtdose, z_rtdose);    % dose grid
 
-fprintf('Mean doses: \n')
 for roi = 1:nROIs_selected
-    % create mask image for each RT structure
     [mask, x_mask, y_mask, z_mask] = createMaskJK(contour, index(roi,1));
-    [xxx_mask, yyy_mask, zzz_mask] = meshgrid(x_mask, y_mask, z_mask);
+    [X_mask, Y_mask, Z_mask] = meshgrid(x_mask, y_mask, z_mask);            % mask grid
     
-    rtdose_mask_interp = interp3(xxx_rtdose, yyy_rtdose, zzz_rtdose, rtdose, xxx_mask, yyy_mask, zzz_mask); % mask, RT dose의 영역이 다름 -> rtdose를 mask 영역에 interp
-    rtdose_mask_only = rtdose_mask_interp(mask == 1); % mask에 해당하는 rtdose 추출
+    % interp
+    rtdose_mask_interp = interp3(X_rtdose,Y_rtdose,Z_rtdose, rtdose, X_mask,Y_mask,Z_mask); % 영역 맞추기
+    rtdose_masked = rtdose_mask_interp(mask == 1); % mask에 해당하는 rtdose
     
-    % print out mean doses
-    fprintf('\t%s: %.2f Gy\n', ROIname_selected{roi,1}, mean(rtdose_mask_only));
+    fprintf('%s: %.2f Gy\n', ROIname_selected{roi,1}, mean(rtdose_masked));
 end

@@ -1,17 +1,15 @@
-% Maximum dose (total dose와 fractional dose)를 계산하고, 화면으로 출력하는 코드
-% total dose는 코드의 rtdose
-% fraction는 DICOM RT plan 파일에서 fraction 수를 가져다가 계산
-% max() 함수
-
+% - RTDOSE에서, Maximum dose (total dose & fractional dose) 계산하고 출력
+% -> total dose :       기본 rtdose
+% -> fraction dose :    total dose / # of fraction (using RTPLAN)
+%
+% -> max() 사용
 
 clear all;
 close all;
 clc;
 
-
+% folders, files (RTDOSE, RTPLAN)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-% get CT and RT Dose Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -22,37 +20,33 @@ for ff = 1:size(folders, 1)
     end
 end
 
-if exist(RTDoseFolder, 'dir')
-    files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
-end
-RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name); % 지훈킴이 if exist, fullfile 사용
+files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
+files_rtplan = dir(fullfile(RTPLANFolder, '*.dcm'));
 
-if exist(RTPLANFolder, 'dir')
-    files_rtplan = dir(fullfile(RTPLANFolder, '*.dcm'));
-end
+RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 RTPLANFile = fullfile(files_rtplan(1).folder, files_rtplan(1).name);
 
 
-% reading RT Plan
+% RT Plan
 rtplan_info = dicominfo(RTPLANFile);
 
 fractionGroupSequence = rtplan_info.FractionGroupSequence;
-nFraction = fractionGroupSequence.Item_1.NumberOfFractionsPlanned;
+nFraction = fractionGroupSequence.Item_1.NumberOfFractionsPlanned; % # of fx
 
-% reading RT dose
+
+% RT dose
 rtdose_info = dicominfo(RTDoseFile);
 
-rtdose_data = dicomread(rtdose_info); % 143 267 1 317
+rtdose_data = dicomread(rtdose_info);
 rtdose_data = squeeze(rtdose_data);
 
 rtdose_gridscaling = rtdose_info.DoseGridScaling;
-rtdose = rtdose_gridscaling * double(rtdose_data); % uint16 -> double (안하면 반올림 처리됨)
+rtdose = rtdose_gridscaling * double(rtdose_data); % = total dose
 
-
+%% hw 12 %%
 % maximum dose
 max_total_dose = max(max(max(rtdose)));
 max_fraction_dose = max_total_dose / nFraction;
 
-fprintf('Maximum doses: \n');
-fprintf('Maximum total dose : %.2f Gy\n', max_total_dose);
-fprintf('Maximum Fraction dose : %.2f Gy\n', max_fraction_dose); % 지훈킴 팁 : 단위를 나타낼 때는 숫자 꼭 쓰기
+fprintf('Maximum Total dose : %.2f Gy\n', max_total_dose);
+fprintf('Maximum Fraction dose : %.2f Gy\n', max_fraction_dose); % 지훈킴 : 단위 꼭 표기

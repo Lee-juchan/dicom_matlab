@@ -7,17 +7,14 @@
 % 2. find()
 % 3. struct() : structure array 생성
 % 4. unique() : 중첩 제거, 오름차순
-
+%%
 
 clear all;
 close all;
 clc;
 
-
+% folders, files (CT, RTst)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-%%
-% get CT and RT structure Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -31,12 +28,13 @@ end
 files = dir(fullfile(RTStFolder, '*.dcm'));
 RTStFile = fullfile(files(1).folder, files(1).name);
 
-% reading CT (3d volumne)
+% CT
 [image, spatial, dim] = dicomreadVolume(CTFolder);
 
 image = squeeze(image);
-image = image - 3614; % raw value -> CT number
+image = image - 3614; % for CT number
 
+% image coordinates
 image_origin = spatial.PatientPositions(1,:);
 image_spacing = spatial.PixelSpacings(1,:);
 image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3);
@@ -56,50 +54,50 @@ for kk = 1:image_size(3)
     z_image(kk) = image_origin(3) + image_spacing(3)*(kk-1);
 end
 
-%%
-% reading RT Structure
+
+% RT Structure
 rtst_info = dicominfo(RTStFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
 contour = dicomContours(rtst_info);
-ROIs = contour.ROIs;
+
+ROIs = contour.ROIs; % rois
 
 name = ROIs.Name;
-contourData = ROIs.ContourData; % 각 slice 수
+contourData = ROIs.ContourData;
 color = ROIs.Color;
 
-nRTStructure = size(ROIs, 1);
+nROIs = size(ROIs, 1);
 
-%% 
-% (advanced : GTV, ITV, PTV)
-% get index for selected RT structure
+%% lec 11 %%
+% selected ROI
 ROIname_selected = {'GTV'; 'ITV'; 'PTV 1250x4 Dmax~'};
 nROIs_selected = size(ROIname_selected, 1);
 
 index = zeros(nROIs_selected, 1);
 
 for roi = 1:nROIs_selected
-    for st = 1:nRTStructure
+    for st = 1:nROIs
         if strcmp(name{st, 1}, ROIname_selected{roi,1})
             index(roi, 1) = st;
         end
     end
 end
 
-% get contour data and color for selecte RT structure
+% contours (for selected ROI)
 roiData = struct([]);
 
 for roi = 1:nROIs_selected
     contourData_selected = contourData{index(roi, 1)};
     color_selected = color{index(roi, 1)};
 
-    z_roi = []; % ROI 마다 slice가 몇개 나올지 아직 모름
+    z_roi = []; % roi별 z list
     nSlice = size(contourData_selected, 1);
 
     for ss = 1:nSlice
         contourData_slice = contourData_selected{ss, 1};
-        z_slice = contourData_slice(:, 3);
+        z_slice = contourData_slice(1, 3);
         z_roi = [z_roi; z_slice];
     end
-    z_roi = unique(z_roi); % 원하는 contour(ROI)의 slice 개수만큼의 z좌표
+    z_roi = unique(z_roi);
 
     roiData(roi).ContourData = contourData_selected;
     roiData(roi).Color = color_selected;
@@ -107,32 +105,29 @@ for roi = 1:nROIs_selected
 end
 
 
-%%
-% plot contour for all slices
+% plot CT + contour
 fig = figure('color', 'w');
 set(gcf, 'units', 'inches');
 set(gcf, 'outerPosition', [1,1,10,9]);
 set(gcf, 'defaultAxesLooseInset', [0.05,0.1,0.03,0.03]);
 
-% subplot
 t_profile = tiledlayout(fig,3,3, 'tileSpacing', 'compact', 'padding', 'compact');
 
-for zz = -1064.5:-1056.5 % z범위 안다고 가정
-
-    % get zxial CT iamge corresponding contour slice
+for zz = -1064.5:-1056.5 % hard coding
+    % CT
     z_index = find(z_image == zz); % 전체 CT의 z좌표 == 현 slice의 z좌표
 
     nexttile;
-    hold on;
     imagesc(x_image, y_image, image(:,:,z_index));
     colormap('gray');
-    set(gca, 'YDir', 'reverse')
-    axis equal
+    set(gca, 'YDir', 'reverse');
+    axis equal;
     axis([20 70 -10 40]);
-    clim([-1000 1000])
+    clim([-1000 1000]);
     title(sprintf('z = %.1f', zz), 'FontSize', 12);
+    hold on;
 
-    % plot 각 contour마다 그리기
+    % contour
     for roi = 1:nROIs_selected
         contourData_selected = roiData(roi).ContourData;
         color_selected = roiData(roi).Color;

@@ -1,19 +1,19 @@
-% RT plan, RT dose, RT structure folder 가져오기
+% - RT plan, RT dose, RT structure 폴더 읽기
 
-%%
+
 clear all;
 close all;
 clc;
 
-%%
-% get CT Folder from patient folder
+%% hw 2 %%
+% folders (RTPLAN, RTDOSE, RTst)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
-RTFolder = {}; % cell array 사용
+
+RTFolders = {}; % cell array
 
 for ff = 1:size(folders, 1)
-    if contains(folders(ff).name, 'RT') % CT 포함된 폴더
-    RTFolder{end + 1} = [fullfile(folders(ff).folder, folders(ff).name)];
+    if contains(folders(ff).name, 'RT') % 'RT' 포함
+    RTFolders{end + 1} = [fullfile(folders(ff).folder, folders(ff).name)];
     end
 end

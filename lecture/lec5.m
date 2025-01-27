@@ -9,7 +9,7 @@
 % 2. tiledlayout :  like subplots
 %    nexttile :     다음 타일로 이동
 % 3. squeeze()
-
+%%
 
 %%% 3.
 % CT 좌표계
@@ -24,14 +24,12 @@
 % axial slice 1 = image(:, :, 1)
 % sagittal 1    = image(:, 1, :) + squeeze()
 
-
 clear all;
 close all;
 clc;
 
-% get CT Folder from patient folder
+% folder (CT)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -40,17 +38,16 @@ for ff = 1:size(folders, 1)
     end
 end
 
-% load image volume
-[image, spatial] = dicomreadVolume(CTFolder);   % 4d (512, 512, 1, 337)
-image = squeeze(image);                         % 1인 차원 제거 -> (1, 5)??
+% 3d image
+[image, spatial] = dicomreadVolume(CTFolder);
+image = squeeze(image);
 
-% get origin, spacing, size
+% image coordinates
 image_origin = spatial.PatientPositions(1,:);
-image_spacing = spatial.PixelSpacings(1,:); % x,y 간격
-image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3); % z 간격
-image_size = spatial.ImageSize; % = size(image);
+image_spacing = spatial.PixelSpacings(1,:);
+image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3);
+image_size = spatial.ImageSize;
 
-% define coordinates in x,y,z directions
 x_image = zeros(image_size(1), 1);
 y_image = zeros(image_size(2), 1);
 z_image = zeros(image_size(3), 1);
@@ -71,25 +68,23 @@ set(fig, 'units', 'inches');
 set(fig, 'outerPosition', [2,2,10,5]);
 
 % subplot
-tiledlayout(fig,1,2, 'tileSpacing', 'compact', 'padding', 'compact') % compact가 시각화 유리
+tiledlayout(fig,1,2, 'tileSpacing', 'compact', 'padding', 'compact'); % compact가 시각화 유리
 
+% axial
 nexttile;
-imagesc(y_image, x_image, image(:, :, 120)) % 120th slice
+imagesc(y_image, x_image, image(:, :, 120)); % 120th slice
 colormap(gray);
-axis xy
-axis equal
-axis tight
-set(gca, 'YDir', 'reverse')                             % anterior가 위로 오도록 ('YDir', 'reverse')
-xlabel('R-L distance (mm)', 'Fontsize', 12)
-ylabel('A-P distance (mm)', 'Fontsize', 12)
-title('Axial', 'FontSize', 12)
+set(gca, 'YDir', 'reverse'); % anterior가 위로
+axis equal tight;
+xlabel('R-L distance (mm)', 'Fontsize', 12);
+ylabel('A-P distance (mm)', 'Fontsize', 12);
+title('Axial', 'FontSize', 12);
 
+% sagittal
 nexttile;
-imagesc(y_image, z_image, squeeze(image(:, 256, :))')   % z축이 행(y축)으로 오도록 (' : transpose)
+imagesc(y_image, z_image, squeeze(image(:, 256, :))')   % (y, z)' -> (z, y)
 colormap(gray);
-axis xy
-axis equal
-axis tight
-xlabel('A-P distance (mm)', 'Fontsize', 12)
-ylabel('I-S distance (mm)', 'Fontsize', 12)
-title('Sagittal', 'FontSize', 12)
+axis equal tight;
+xlabel('A-P distance (mm)', 'Fontsize', 12);
+ylabel('I-S distance (mm)', 'Fontsize', 12);
+title('Sagittal', 'FontSize', 12);

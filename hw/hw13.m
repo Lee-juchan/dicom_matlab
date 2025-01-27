@@ -1,45 +1,32 @@
-% Mask image에 contour를 overlay하는 코드 작성
-% GTV, ITV, PTV중 하나
-
+% - RTst에서, mask+contour overlay하여 plot
+% -> GTV, ITV, PTV중 하나 사용
 
 clear all;
 close all;
 clc;
 
+% folers, files (CT, RTst)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-% get CT, RT Structure, RT Plan, RT Dose Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_CT_')
         CTFolder = fullfile(folders(ff).folder, folders(ff).name);     % CT
     elseif contains(folders(ff).name, '_RTst')
-        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT structure
-    elseif contains(folders(ff).name, '_RTPLAN_')
-        RTPlanFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT plan
+        RTstFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT structure
     elseif contains(folders(ff).name, '_RTDOSE_')
-        RTDoseFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
+        RTDOSEFolder = fullfile(folders(ff).folder, folders(ff).name);   % RT Dose
     end
 end
 
-if exist(RTStFolder, 'dir')
-    files_rtdose = dir(fullfile(RTStFolder, '*.dcm'));
-end
-RTStFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
+files_rtst = dir(fullfile(RTstFolder, '*.dcm'));
+files_rtdose = dir(fullfile(RTDOSEFolder, '*.dcm'));
 
-if exist(RTPlanFolder, 'dir')
-    files_rtplan = dir(fullfile(RTPlanFolder, '*.dcm'));
-end
-RTPlanFile = fullfile(files_rtplan(1).folder, files_rtplan(1).name);
-
-if exist(RTDoseFolder, 'dir')
-    files_rtdose = dir(fullfile(RTDoseFolder, '*.dcm'));
-end
-RTDoseFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
+RTstFile = fullfile(files_rtst(1).folder, files_rtst(1).name);
+RTDOSEFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 
 
-% reading CT (3d volumne)
+% CT
 [image, spatial, dim] = dicomreadVolume(CTFolder);
 
 image = squeeze(image);
@@ -65,39 +52,39 @@ for kk = 1:image_size(3)
 end
 
 
-% reading RT Structure
-rtst_info = dicominfo(RTStFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
+% RT Structure
+rtst_info = dicominfo(RTstFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
 contour = dicomContours(rtst_info);
-ROIs = contour.ROIs;
 
+ROIs = contour.ROIs; % rois
 name = ROIs.Name;
-contourData = ROIs.ContourData; % 각 slice 수
+contourData = ROIs.ContourData;
 color = ROIs.Color;
 
-nRTStructure = size(ROIs, 1);
+nROIs = size(ROIs, 1);
 
-% get index for selected RT structure
+% selected ROI
 ROIname_selected = {'GTV'; 'ITV'; 'PTV 1250x4 Dmax~'};
 nROIs_selected = size(ROIname_selected, 1);
 
 index = zeros(nROIs_selected, 1);
 
 for roi = 1:nROIs_selected
-    for st = 1:nRTStructure
+    for st = 1:nROIs
         if strcmp(name{st, 1}, ROIname_selected{roi,1})
             index(roi, 1) = st;
         end
     end
 end
 
-% get contour data and color for selecte RT structure
+% contour (for selected ROI)
 roiData = struct([]);
 
 for roi = 1:nROIs_selected
     contourData_selected = contourData{index(roi, 1)};
     color_selected = color{index(roi, 1)};
 
-    z_roi = []; % ROI 마다 slice가 몇개 나올지 아직 모름
+    z_roi = [];
     nSlice = size(contourData_selected, 1);
 
     for ss = 1:nSlice
@@ -105,7 +92,7 @@ for roi = 1:nROIs_selected
         z_slice = contourData_slice(:, 3);
         z_roi = [z_roi; z_slice];
     end
-    z_roi = unique(z_roi); % 원하는 contour(ROI)의 slice 개수만큼의 z좌표
+    z_roi = unique(z_roi);
 
     roiData(roi).ContourData = contourData_selected;
     roiData(roi).Color = color_selected;
@@ -113,20 +100,19 @@ for roi = 1:nROIs_selected
 end
 
 
-% reading RT dose
-rtdose_info = dicominfo(RTDoseFile);
+% RT dose
+rtdose_info = dicominfo(RTDOSEFile);
 
 rtdose_data = dicomread(rtdose_info);
 rtdose_data = squeeze(rtdose_data);
 
-rtdose_origin = rtdose_info.ImagePositionPatient; % CT image와 상당히 유사
+rtdose_gridscaling = rtdose_info.DoseGridScaling;
+rtdose = rtdose_gridscaling * double(rtdose_data); % for real dose
+
+rtdose_origin = rtdose_info.ImagePositionPatient;
 rtdose_spacing(1:2) = rtdose_info.PixelSpacing;
 rtdose_spacing(3) = rtdose_info.SliceThickness;
-rtdose_size = size(rtdose_data);
-
-% to convert raw data -> dose
-rtdose_gridscaling = rtdose_info.DoseGridScaling;
-rtdose = rtdose_gridscaling * double(rtdose_data);
+rtdose_size = size(rtdose_data); % y x z 순
 
 x_rtdose = zeros(rtdose_size(2), 1);
 y_rtdose = zeros(rtdose_size(1), 1);
@@ -143,13 +129,12 @@ for kk = 1:rtdose_size(3)
 end
 
 
-%%
+%% hw 13 %%
 % loop 1 : ROI 선택
 
 % loop 2 : ROI의 slice(z) 선택
-%           contour 그리기
-%           mask 그리기 (ROI에 해당하는 index(roi,1) 찾아서 마스크 만들기)
-
+%           plot    (contour)
+%           imagesc (mask)
 
 for roi = 1:nROIs_selected
 
@@ -161,7 +146,6 @@ for roi = 1:nROIs_selected
 
     tiledlayout(fig,5,5, 'tileSpacing', 'compact', 'padding', 'compact');
 
-    
     % ROI별
     contourData_selected = roiData(roi).ContourData; % contour
     color_selected = roiData(roi).Color;
@@ -169,24 +153,21 @@ for roi = 1:nROIs_selected
 
     [mask, x_mask, y_mask, z_mask] = createMaskJK(contour, index(roi,1)); % mask
 
-
     % slice별 mask, contour
     for zz = min(z_roi):max(z_roi)
-
-        % plot mask
-        z_index = find(z_mask == zz); % 전체 CT의 z좌표 == 현 slice의 z좌표
+        % mask
+        z_index = find(z_mask == zz); % zz of mask
 
         nexttile;
-        hold on;
         imagesc(x_mask, y_mask, mask(:,:,z_index));
         colormap('gray');
         set(gca, 'YDir', 'reverse')
         axis equal
         axis([20 70 -10 40]);
         title(sprintf('z = %.1f', zz), 'FontSize', 12);
+        hold on;
 
-
-        % plot contour
+        % contour
         z_roi_index = find(z_roi == zz);
 
         contourData_slice = contourData_selected{z_roi_index};
@@ -198,6 +179,6 @@ for roi = 1:nROIs_selected
         hold off;
     end
 
-    % ROI별 figure 제목
+    % ROI별 fig title
     sgtitle(sprintf('ROI = %s', ROIname_selected{roi}), 'FontSize', 16, 'FontWeight', 'bold');
 end

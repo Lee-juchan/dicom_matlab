@@ -1,14 +1,11 @@
-% DICOM RT Plan 파일을 읽고, 각 빔의 gantry angle의 range를 텍스트 파일로 출력하는 코드를 작성
-
+% - RT Plan에서, 각 빔의 gantry angle의 range를 텍스트 파일로 출력
 
 clear all;
 close all;
 clc;
 
-
-% get RT Plan Folder from patient folder
+% folder, files (RTPLAN)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -23,37 +20,36 @@ RTPLANFile = fullfile(files(1).folder, files(1).name);
 
 % save txt
 filename = fullfile(pwd, 'data', 'hw6.txt');
-
 fid = fopen(filename, 'w');
 
 
-% reading RT Plan
+% RT Plan
 rtplan_info = dicominfo(RTPLANFile);
 
-beamSequence = rtplan_info.BeamSequence;
-fieldnames_beamSequence = fieldnames(beamSequence); % beam의 수 만큼 나옴
+beamSequence = rtplan_info.BeamSequence; % beams
+fieldnames_beamSequence = fieldnames(beamSequence);
 
 nBeam = size(fieldnames_beamSequence, 1);
 
 for bb = 1:nBeam
-    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb});
+    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb}); % beam
 
-    beamname = item_beamSequence.BeamName;
     ncontrolpoints = item_beamSequence.NumberOfControlPoints;
 
-    controlPointSequence = item_beamSequence.ControlPointSequence;
+    controlPointSequence = item_beamSequence.ControlPointSequence; % cps
     fieldnames_controlpointsequence = fieldnames(controlPointSequence);
 
-    gantryAngles = zeros(ncontrolpoints, 1);
+    %% hw 6 %%
+    gantryAngles = zeros(ncontrolpoints, 1); % gantry angles
 
     for cp = 1:ncontrolpoints
-        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp});
+        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp}); % cp
         
         gantryAngles(cp, 1) = item_controlPointSequence.GantryAngle;
     end
     
+    % save txt
     fprintf(fid, 'Beam %d, Gantry angle: %.1f to %.1f\n', bb, min(gantryAngles), max(gantryAngles));
 end
 
-% end save txt
 fclose(fid);

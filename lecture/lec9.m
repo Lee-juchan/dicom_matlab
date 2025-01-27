@@ -4,8 +4,9 @@
 
 % 🌟 주요 MATLAB 함수:
 % 1. rectangle('Position', [x y w h])
+%%
 
-
+% Y-jaw
 % lower jaw
 % x = -200
 % y = -200
@@ -18,6 +19,7 @@
 % w = 400
 % h = 200 - y
 
+% MLC
 % left n-leaf
 % x = -200
 % y = -200 + 5*(n-1)
@@ -30,36 +32,31 @@
 % w = 200 - x
 % h = 5
 
-
 clear all;
 close all;
 clc;
 
-
+% folder, files (RTPLAN)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-
-% get RT Plan Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTPLAN_')
-        RTPlanFolder = fullfile(folders(ff).folder, folders(ff).name);
+        RTPLANFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
-files = dir(fullfile(RTPlanFolder, '*.dcm'));
-RTPlanFile = fullfile(files(1).folder, files(1).name);
+files = dir(fullfile(RTPLANFolder, '*.dcm'));
+RTPLANFile = fullfile(files(1).folder, files(1).name);
 
+% RT plan
+rtplan_info = dicominfo(RTPLANFile);
 
-% reading RT Plan
-rtplan_info = dicominfo(RTPlanFile);
-
-beamSequence = rtplan_info.BeamSequence;
-fieldnames_beamSequence = fieldnames(beamSequence); % beam의 수 만큼 나옴
+beamSequence = rtplan_info.BeamSequence; % beams
+fieldnames_beamSequence = fieldnames(beamSequence);
 nBeams = size(fieldnames_beamSequence, 1);
 
-%%
+%% lec 9 %%
 % plot MLC
 fig = figure('color', 'w');
 set(fig, 'units', 'inches');
@@ -69,34 +66,28 @@ axis([-200, 200 ,-200, 200]);
 
 %%
 for bb = 1%:nBeams % -> for 1st beam
-    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb});
+    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb}); % beam
 
-    beamname = item_beamSequence.BeamName;
-    fprintf('Beam: %s\n', beamname);
-
-    ncontrolpoints = item_beamSequence.NumberOfControlPoints;
-    fprintf('\tNumber of control points: %d\n', ncontrolpoints);
-
-    controlPointSequence = item_beamSequence.ControlPointSequence;
+    controlPointSequence = item_beamSequence.ControlPointSequence; % cps
     fieldnames_controlpointsequence = fieldnames(controlPointSequence);
-
+    
+    ncontrolpoints = item_beamSequence.NumberOfControlPoints;
 
     for cp = 1%:ncontrolpoints % for 1st cp
-        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp});
+        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp}); % cp
         
-        bldPositionSequence = item_controlPointSequence.BeamLimitingDevicePositionSequence;
+        bldPositionSequence = item_controlPointSequence.BeamLimitingDevicePositionSequence; % blds
 
         % y-jaw positions
-        item2_bldPositionSequence = bldPositionSequence.Item_2;
-        YjawPositions = item2_bldPositionSequence.LeafJawPositions;
+        Yjaw = bldPositionSequence.Item_2;
+        YjawPositions = Yjaw.LeafJawPositions;
 
-        %%
+        %% lec 9 %%
         % lower jaw
         x_jaw_low = -200;
         y_jaw_low = -200;
         w_jaw_low = 400;
         h_jaw_low = YjawPositions(1,1) - y_jaw_low;
-
         rectangle('position', [x_jaw_low, y_jaw_low, w_jaw_low, h_jaw_low], 'faceColor', [0.5, 0.5, 0.5]);
         
         % upper jaw
@@ -104,25 +95,23 @@ for bb = 1%:nBeams % -> for 1st beam
         y_jaw_up = YjawPositions(2,1);
         w_jaw_up = 400;
         h_jaw_up = 200 - y_jaw_up;
-
         rectangle('position', [x_jaw_up, y_jaw_up, w_jaw_up, h_jaw_up], 'faceColor', [0.5, 0.5, 0.5]);
         %%
 
         % MLC positions
-        item3_bldPositionSequence = bldPositionSequence.Item_3;
-        MLCPositions = item3_bldPositionSequence.LeafJawPositions;
+        MLC = bldPositionSequence.Item_3;
+        MLCPositions = MLC.LeafJawPositions;
 
         MLCPositions_left = MLCPositions(1:80, 1);
         MLCPositions_right = MLCPositions(81:160, 1);
 
-        %%
+        %% lec 9 %%
         for mlc = 1:80
             % left n-leaf
             x_mlc_left = -200;
             y_mlc_left = -200 + 5*(mlc-1);
             w_mlc_left = MLCPositions_left(mlc,1) - x_mlc_left;
             h_mlc_left = 5;
-
             rectangle('position', [x_mlc_left, y_mlc_left, w_mlc_left, h_mlc_left]);
 
             % right n-leaf
@@ -130,15 +119,7 @@ for bb = 1%:nBeams % -> for 1st beam
             y_mlc_right = -200 + 5*(mlc-1);
             w_mlc_right = 200 - x_mlc_right;
             h_mlc_right = 5;
-
             rectangle('position', [x_mlc_right, y_mlc_right, w_mlc_right, h_mlc_right]);
         end
-        %%
-        
-
-        MLCOpeningWidth = MLCPositions_right(mlc, 1) - MLCPositions_left(mlc, 1);
-        MLCOpeningArea2 = sum(MLCOpeningWidth*5);
-        disp(MLCOpeningArea2);
-
     end
 end

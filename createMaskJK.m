@@ -1,7 +1,7 @@
 
 % createMaskJK 
-% (createMask(rtContours, roiIndex, spatial)에서 spatial 제거)
-function [mask, x_mask, y_mask, z_mask] = createMaskJK(contour,index)
+
+function [mask, x_mask, y_mask, z_mask] = createMaskJK(contour,index) % (createMask(rtContours, roiIndex, spatial)에서 spatial 제거)
     % voxel size in mask image (mm)
     mask_grid_spacing = 1.0;
     padding = 40.0;

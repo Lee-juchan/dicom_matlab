@@ -1,4 +1,4 @@
-% 아래와 같은 행렬이 되도록 for문 사용
+% for문 사용, 아래와 같은 행렬 만들기
 
 % 1 2 .. 10
 % 4 6 .. 22
@@ -10,6 +10,7 @@ clear all;
 close all;
 clc;
 
+%% hw 7 %%
 sequence = zeros(9, 10);
 
 for i = 1:10

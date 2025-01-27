@@ -7,15 +7,14 @@
 % 1. dicominfo()
 % 2. fopen()
 % 3. fprintf()
-
+%%
 
 clear all;
 close all;
 clc;
 
-%% lec1 %%
-% get information from DICOM CT file
-
+%% lec 1 %%
+% file
 filename = fullfile(pwd, 'data', 'test.dcm');
 
 info = dicominfo(filename);
@@ -26,13 +25,13 @@ PatientGivenName = PatientName.GivenName;
 PatientFamilyName = PatientName.FamilyName;
 Width = info.Width;
 
-% print out CT information
-% 1. to the command window
+% print
+% to screen
 fprintf('Pixel Spacing: %.3f, %.3f\n',PixelSpacing);
 fprintf('Patient Name: %s, %s\n',PatientFamilyName,PatientGivenName);
 fprintf('Width: %d\n',Width);
 
-% 2. to a text file
+% to file
 fid = fopen(fullfile(pwd, 'data', 'test.txt'), 'w');
 
 fprintf(fid,'Pixel Spacing: %.3f, %.3f\n',PixelSpacing);

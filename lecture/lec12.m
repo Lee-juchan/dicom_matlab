@@ -5,20 +5,18 @@
 % 🌟 주요 MATLAB 함수:
 % 1. double()
 % 2. axes, linkaxes, alpha
-
+%%
 
 % CT / dose plot 어려움
 % 1. thickness 다름     -> 공통 z만 plot
 % 2. overlay 문제       -> 2개 좌표계 사용해서 다른 cmap적용 (linkaxes로 연결), 투명도 조정
 
-
 clear all;
 close all;
 clc;
 
+% folders, files (CT, RTDOSE)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-% get CT and RT Dose Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -33,12 +31,13 @@ files = dir(fullfile(RTDoseFolder, '*.dcm'));
 RTDoseFile = fullfile(files(1).folder, files(1).name);
 
 
-% reading CT (3d volumne)
+% CT
 [image, spatial, dim] = dicomreadVolume(CTFolder);
 
-image = squeeze(image);
+image = squeeze(image); % 512 512 337
 image = image - 3614; % raw value -> CT number
 
+% image coordinates
 image_origin = spatial.PatientPositions(1,:);
 image_spacing = spatial.PixelSpacings(1,:);
 image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3);
@@ -58,23 +57,23 @@ for kk = 1:image_size(3)
     z_image(kk) = image_origin(3) + image_spacing(3)*(kk-1);
 end
 
-%%
-% reading RT dose
+%% lec 12 %% 
+% RT dose
 rtdose_info = dicominfo(RTDoseFile);
 
-rtdose_data = dicomread(rtdose_info); % 143 267 1 317
-rtdose_data = squeeze(rtdose_data);
+rtdose_data = dicomread(rtdose_info);
+rtdose_data = squeeze(rtdose_data); % 143 267 317
 
-rtdose_origin = rtdose_info.ImagePositionPatient; % CT image와 상당히 유사, but 영역자체가 다름
-rtdose_spacing(1:2) = rtdose_info.PixelSpacing; % 2 2 2 (voxel size)
-rtdose_spacing(3) = rtdose_info.SliceThickness;
-rtdose_size = size(rtdose_data);
-
-% to convert raw data -> dose
 rtdose_gridscaling = rtdose_info.DoseGridScaling;
-rtdose = rtdose_gridscaling * double(rtdose_data); % uint16 -> double (안하면 반올림 처리됨)
+rtdose = rtdose_gridscaling * double(rtdose_data); % for real dose
 
-x_rtdose = zeros(rtdose_size(2), 1); % y x z 순서 -> 지훈킴은 CT(x y z)랑 다르다고 했는데 CT도 y x z 아닌가? (행 열 높이)가 보통 axis 0 1 2 인데?
+% rtdose coordinates
+rtdose_origin = rtdose_info.ImagePositionPatient;   % CT와 유사 (but 영역 차이)
+rtdose_spacing(1:2) = rtdose_info.PixelSpacing;     % 2 2 2 (voxel)
+rtdose_spacing(3) = rtdose_info.SliceThickness;
+rtdose_size = size(rtdose_data); % y x z 순서 (주의!!!!!)
+
+x_rtdose = zeros(rtdose_size(2), 1);
 y_rtdose = zeros(rtdose_size(1), 1);
 z_rtdose = zeros(rtdose_size(3), 1);
 
@@ -88,18 +87,18 @@ for kk = 1:rtdose_size(3)
     z_rtdose(kk) = rtdose_origin(3) + rtdose_spacing(3)*(kk-1);
 end
 
-%
-% plot dose/contour on CT
+
+% plot CT + dose
 fig = figure('color', 'w');
 set(gcf, 'units', 'inches');
 set(gcf, 'outerPosition', [1,1,10,9]);
 set(gcf, 'defaultAxesLooseInset', [0.05,0.1,0.03,0.03]);
 
-% get axial CT image corresponding to contour slice
 zz = -1060.5;
 z_index = find(z_image == zz);
 z_rtdose_index = find(z_rtdose == zz);
 
+% CT
 ax1 = axes;
 im_ct = imagesc(ax1, x_image,y_image, image(:,:,z_index));
 colormap(ax1, 'gray');
@@ -108,8 +107,9 @@ axis([-100 100 -100 100]);
 clim([-1000 1000]);
 xlabel('R-L distance (mm)', 'fontsize', 14);
 ylabel('A-P distance (mm)', 'fontsize', 14);
-
 hold on;
+
+% dose
 ax2 = axes;
 im_dose = imagesc(ax2, x_rtdose,y_rtdose, rtdose(:,:,z_rtdose_index));
 colormap(ax2, 'jet');
@@ -117,5 +117,5 @@ axis equal;
 axis([-100 100 -100 100]);
 alpha(ax2, 0.4);
 
-linkaxes([ax1 ax2], 'xy'); % 스케치북 맞추고,
-ax2.Visible = 'off'; % 스케치북 안보이게 (안겹치게 흰바탕 제거)
+linkaxes([ax1 ax2], 'xy');  % axes 맞추기
+ax2.Visible = 'off';        % axes 숨기기 (like 투명화)

@@ -5,6 +5,7 @@
 % 🌟 주요 MATLAB 함수
 % 1. dicominfo()
 % 2. fieldnames()
+%%
 
 % test : fieldnames(rtplan_info)
 % rtplan_info.DoseReferenceSequence.Item_1    % prescription dose 등 확인 가능
@@ -19,15 +20,12 @@
 % rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_2.LeafJawPositions    % Y-jaw Position : [-15, 20]
 % rtplan_info.BeamSequence.Item_1.ControlPointSequence.Item_1.BeamLimitingDevicePositionSequence.Item_3.LeafJawPositions    % MLC position   : ...
 
-
 clear all;
 close all;
 clc;
 
-%%
-% get RT Plan Folder from patient folder
+% folder, file (RTPLAN)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -39,31 +37,30 @@ end
 files = dir(fullfile(RTPLANFolder, '*.dcm'));
 RTPLANFile = fullfile(files(1).folder, files(1).name);
 
-
-% reading RT Plan
+%% lec 6 %%
+% RT plan
 rtplan_info = dicominfo(RTPLANFile);
 
-beamSequence = rtplan_info.BeamSequence;
-fieldnames_beamSequence = fieldnames(beamSequence); % beam의 수 만큼 나옴
+beamSequence = rtplan_info.BeamSequence; % beams
+fieldnames_beamSequence = fieldnames(beamSequence);
 
 for bb = 1:size(fieldnames_beamSequence, 1)
-    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb});
+    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb}); % beam
 
     beamname = item_beamSequence.BeamName;
     fprintf('Beam: %s\n', beamname);
 
-    ncontrolpoints = item_beamSequence.NumberOfControlPoints;
+    ncontrolpoints = item_beamSequence.NumberOfControlPoints;   % = size(fieldnames_controlpointsequence, 1)
     fprintf('\tNumber of control points: %d\n', ncontrolpoints);
-
-    controlPointSequence = item_beamSequence.ControlPointSequence;
+    
+    controlPointSequence = item_beamSequence.ControlPointSequence; % cps
     fieldnames_controlpointsequence = fieldnames(controlPointSequence);
 
     fprintf('\tCumulative meterset: \n');
     for cp = 1:ncontrolpoints
-        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp});
+        item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp}); % cp
         
         cumulativeMetersetWeight = item_controlPointSequence.CumulativeMetersetWeight;
         fprintf('\t\t#%d: %f\n', cp, cumulativeMetersetWeight);
     end
 end
-

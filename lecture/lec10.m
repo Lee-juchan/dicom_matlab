@@ -6,7 +6,7 @@
 % 1. dicomContours() -> 모든 slice의 contour을 한번에
 % 2. plot(x,y, marker) : 'color', 'linewidth'
 %    axis([xmin xmax ymin ymax])
-
+%%
 
 % rtst_info
 % rtst_info = dicominfo(RTStFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
@@ -20,58 +20,61 @@
 % rtst_info.ROIContourSequence.Item_1.ContourSequence.Item_1; % contour point 75 (포함된 포인트)
 % rtst_info.ROIContourSequence.Item_1.ContourSequence.Item_1.ContourData; % x y z 반복 (z 동일) 75*3 = 255
 
+% dicomContours()
+
+% number = ROIs.Number;
+% name = ROIs.Name;
+% contourData = ROIs.ContourData; % 각 slice 수
+% geometricType = ROIs.GeometricType;
+% color = ROIs.Color;
+
+
 % RT structure (contour)는 어떤 형태로 저장?
 % -> point set (각 axial slice에 정의된 3d 좌표)
-
 
 clear all;
 close all;
 clc;
 
-
+% folder, files (RTst)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-%%
-% get RT structure Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
     if contains(folders(ff).name, '_RTst_')
-        RTStFolder = fullfile(folders(ff).folder, folders(ff).name);
+        RTstFolder = fullfile(folders(ff).folder, folders(ff).name);
     end
 end
 
-files = dir(fullfile(RTStFolder, '*.dcm'));
-RTStFile = fullfile(files(1).folder, files(1).name);
+files = dir(fullfile(RTstFolder, '*.dcm'));
+RTstFile = fullfile(files(1).folder, files(1).name);
 
-
-% reading RT Structure
-rtst_info = dicominfo(RTStFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
+%% lec 10 %%
+% RT structure
+rtst_info = dicominfo(RTstFile, 'UseVRHeuristic', false);   % 'UseVRHeuristic', false : 없으면 오류
 contour = dicomContours(rtst_info);
-ROIs = contour.ROIs;
 
-number = ROIs.Number;
+ROIs = contour.ROIs; % rois
+
 name = ROIs.Name;
-contourData = ROIs.ContourData; % 각 slice 수
-geometricType = ROIs.GeometricType;
+contourData = ROIs.ContourData;
 color = ROIs.Color;
 
-nRTStructure = size(ROIs, 1);
+nROIs = size(ROIs, 1);
 
-% get index for selected RT structure
+% selected ROI
 ROIname_selected = 'GTV';
 
-for st = 1:nRTStructure
+for st = 1:nROIs
     if strcmp(name{st, 1}, ROIname_selected)
         index = st;
     end
 end
 
-% get contour data and color for selecte RT structure
 contourData_selected = contourData{index};
 color_selected = color{index};
 
-% plot contour for all slices
+% plot (all slice)
 nSlice = size(contourData_selected, 1);
 
 for ss = 1:nSlice

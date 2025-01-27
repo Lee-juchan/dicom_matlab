@@ -1,21 +1,19 @@
-% 첫번째 arc, 첫번째 cp에서 MLC와 Jaw로 생성된 aperture의 넓이를 계산하는 코드 작성
+% - RT PLAN에서, 첫번째 arc/cp의 MLC/Jaw로 생성된 aperture의 넓이를 계산
 
-% Jaw가 열려있는 leaf 번호 구하기 :
+% -> Jaw가 열려있는 leaf :
 %
 % YJawPositinos = [-15, 20]
-%   - Inferior쪽 jaw (덮는) 길이  = -15 - (-200) = 185mm     (YJawPosition(1) - 200)
-%   - ... MLC 개수               = 185/5 = 37개             (YJawPositions(1) - 200) / 5 
-%                                         -> 38th부터 열림  ((YJawPositions(1) - 200) / 5) + 1 
-
+%   - lower jaw 길이    = -15 - (-200) = 185     (YJawPosition(1) + 200)
+%   - lower MLC 수      = 185/5 = 37            (YJawPositions(1) + 200) / 5 
+%                             -> 38th부터 열림    ((YJawPositions(1) + 200) / 5) + 1 
 
 
 clear all;
 close all;
 clc;
 
+% folder, files (RTPLAN)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
-% get RT Plan Folder from patient folder
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -28,15 +26,15 @@ files = dir(fullfile(RTPLANFolder, '*.dcm'));
 RTPLANFile = fullfile(files(1).folder, files(1).name);
 
 
-% reading RT Plan
+% RT Plan
 rtplan_info = dicominfo(RTPLANFile);
 
-beamSequence = rtplan_info.BeamSequence;
-fieldnames_beamSequence = fieldnames(beamSequence); % beam의 수 만큼 나옴
+beamSequence = rtplan_info.BeamSequence; % beams
+fieldnames_beamSequence = fieldnames(beamSequence);
 nBeams = size(fieldnames_beamSequence, 1);
 
 for bb = 1%:nBeams % -> for 1st beam
-    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb});
+    item_beamSequence = beamSequence.(fieldnames_beamSequence{bb}); % beam
 
     beamname = item_beamSequence.BeamName;
     fprintf('Beam: %s\n', beamname);
@@ -44,10 +42,9 @@ for bb = 1%:nBeams % -> for 1st beam
     ncontrolpoints = item_beamSequence.NumberOfControlPoints;
     fprintf('\tNumber of control points: %d\n', ncontrolpoints);
 
-    controlPointSequence = item_beamSequence.ControlPointSequence;
+    controlPointSequence = item_beamSequence.ControlPointSequence; % cps
     fieldnames_controlpointsequence = fieldnames(controlPointSequence);
 
-    %%
     for cp = 1%:ncontrolpoints % for 1st cp
         item_controlPointSequence = controlPointSequence.(fieldnames_controlpointsequence{cp});
         
@@ -64,6 +61,7 @@ for bb = 1%:nBeams % -> for 1st beam
         MLCPositions_left = MLCPositions(1:80, 1);
         MLCPositions_right = MLCPositions(81:160, 1);
 
+        %% hw 8 %%
         % MLC 면적 구하기 (Y-jaw 고려 o)
         MLC_top = (YjawPositions(2) + 200)/5;
         MLC_bottom = (YjawPositions(1) + 200)/5 + 1;

@@ -1,14 +1,13 @@
-% DICOM CT 3d 이미지 읽고, axial, sagittal, coronal views를 한 이미지에 plot하고, 이미지로 저장
-% 각 plane에서 이미지 볼륭 중간 정도의 slice 추출
-% figure 사이즈 조정, tiledlayout에서 사이즈 조정
+% - CT에서, axial, sagittal, coronal views를 한 이미지에 plot하고 저장
+% -> 중간 slice 추출
+% -> tiledlayout 사용
 
 clear all;
 close all;
 clc;
 
-% get CT Folder from patient folder
+% folder (CT)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -17,14 +16,13 @@ for ff = 1:size(folders, 1)
     end
 end
 
-% load image volume
+% CT
 [image, spatial] = dicomreadVolume(CTFolder);
 image = squeeze(image);
-image = image - 3614; % raw value -> CT number (hard coding)
 
-% define coordinates in x,y,z directions
+% image coordinates
 image_origin = spatial.PatientPositions(1,:);
-image_spacing = spatial.PixelSpacings(1,:);
+image_spacing(1:2) = spatial.PixelSpacings(1,:);
 image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3);
 image_size = spatial.ImageSize;
 
@@ -42,6 +40,7 @@ for kk = 1:image_size(3)
     z_image(kk) = image_origin(3) + image_spacing(3)*(kk-1);
 end
 
+%% hw 5 %%
 % image plot
 fig = figure('color', 'w');
 set(fig, 'units', 'inches');

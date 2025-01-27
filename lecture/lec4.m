@@ -5,9 +5,10 @@
 % 4. CT image를 개별 slice 이미지로 읽지 않고, 하나의 volumetric image로 읽는 방법
 
 % 🌟 주요 MATLAB 함수
-% 1. dicomreadVolume()
+% 1. [V, spatial] = dicomreadVolume()
 % 2. squeeze()
 % 3. double()
+%%
 
 %%% 1.
 % raw value:    CT scanner가 측정한 값 (DICOM 이미지의 픽셀 값)
@@ -31,14 +32,12 @@
 % PatientOrientations: [2x3x337 double] : 각 이미지의 회전 방향 (MR 필수)
 % ImageSize: [512 512 337]              : 각 이미지 크기
 
-
 clear all;
 close all;
 clc;
 
-% get CT Folder from patient folder
+% folder (CT)
 patientDataFolder = fullfile(pwd, 'data', 'patient-example');
-
 folders = dir(patientDataFolder);
 
 for ff = 1:size(folders, 1)
@@ -48,41 +47,39 @@ for ff = 1:size(folders, 1)
 end
 
 %% lec4 %%
-% load image volume
-[image, spatial] = dicomreadVolume(CTFolder);   % 4d (512, 512, 1, 337)
-image = squeeze(image);                         % 1인 차원 제거 -> (1, 5)??
+% % 3d image
+% [image, spatial] = dicomreadVolume(CTFolder);   % (512, 512, 1, 337)
+% image = squeeze(image);                         % -> (512, 512, 337)
 
-% get origin, spacing, size
-image_origin = spatial.PatientPositions(1,:);
-image_spacing = spatial.PixelSpacings(1,:); % x,y 간격
-image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3); % z 간격
-image_size = spatial.ImageSize; % = size(image);
-
+% % image coordinates
+% image_origin = spatial.PatientPositions(1,:);
+% image_spacing(1:2) = spatial.PixelSpacings(1,:);                                    % x,y 간격
+% image_spacing(3) = spatial.PatientPositions(2,3) - spatial.PatientPositions(1,3);   % z 간격
+% image_size = spatial.ImageSize; % = size(image);
 %%
-% get DICOM files
+
+% files (2d images)
 files = dir(fullfile(CTFolder, '*.dcm'));
 
-for ff = 1:1%size(files, dim=1)
+for ff = 1:1%size(files, 1)
     filename =  fullfile(files(ff).folder, files(ff).name);
     
     info = dicominfo(filename);
-    sliceLocation = info.SliceLocation;
-    rescaleSlope = info.RescaleSlope;
-    rescaleIntercept = info.RescaleIntercept;
-
-    fprintf('Slice location = %.1f\n', sliceLocation);
+    image_raw = dicomread(info);
 
     %% lec4 %%
-    image_raw = dicomread(info);
+    % CT number
+    rescaleSlope = info.RescaleSlope;
+    rescaleIntercept = info.RescaleIntercept;
+    
     image = image_raw*rescaleSlope + rescaleIntercept;     % raw value -> CT number
-
     %%
-    % get header information to create coordinates
+
+    % image coordinates
     image_origin = info.ImagePositionPatient;
     image_spacing = info.PixelSpacing;
     image_size = size(image);
 
-    % define coordinates in x,y directions
     x = zeros(image_size(1), 1);
     y = zeros(image_size(2), 1);
 
@@ -94,17 +91,17 @@ for ff = 1:1%size(files, dim=1)
     end
 
     %% lec4 %%
-    % set window, level
+    % window, level
     window = 350;
     level = 50;
 
     lower_limit = level - 0.5*window;
     upper_limit = level + 0.5*window;
-
     %%
+
     % plot
     figure('Color', 'w');
-    imagesc(x,y, image); % -> x, y 좌표가 이미지에 표시됨 (-250 ~ 250)
+    imagesc(x,y, image);
     colormap('gray');
     axis equal;
     axis tight;
