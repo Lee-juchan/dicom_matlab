@@ -28,9 +28,12 @@ for ff = 1:size(folders, 1)
     end
 end
 
-files_rtst = dir(fullfile(RTstFolder, '*.dcm'));        % exist(RTstFolder, 'dir') 활용 가능
+
+files_ct = dir(fullfile(CTFolder, '*.dcm'));        % exist(RTstFolder, 'dir') 활용 가능
+files_rtst = dir(fullfile(RTstFolder, '*.dcm'));
 files_rtdose = dir(fullfile(RTDOSEFolder, '*.dcm'));
 
+CTFile = fullfile(files_ct(1).folder, files_ct(1).name); % 1st slice
 RTstFile = fullfile(files_rtst(1).folder, files_rtst(1).name);
 RTDOSEFile = fullfile(files_rtdose(1).folder, files_rtdose(1).name);
 
@@ -138,6 +141,44 @@ for kk = 1:rtdose_size(3)
     z_rtdose(kk) = rtdose_origin(3) + rtdose_spacing(3)*(kk-1);
 end
 
+% %%%%%%% CT
+% for ii = 1:image_size(1) % y축
+%     cla;
+%     imagesc(squeeze(image(ii,:,:)))
+%     pause(0.05)
+% end
+
+% for ii = 1:image_size(2) % x축
+%     cla;
+%     imagesc(squeeze(image(:,ii,:)))
+%     pause(0.05)
+% end
+
+% for ii = 1:image_size(3) % z축
+%     cla;
+%     imagesc(squeeze(image(:,:,ii)))
+%     pause(0.05)
+% end
+% %%%%%%%%%
+% %%%%%%% RT dose
+% for ii = 1:rtdose_size(1) % y축
+%     cla;
+%     imagesc(squeeze(rtdose(ii,:,:)))
+%     pause(0.05)
+% end
+
+% for ii = 1:rtdose_size(2) % x축
+%     cla;
+%     imagesc(squeeze(rtdose(:,ii,:)))
+%     pause(0.05)
+% end
+
+% for ii = 1:rtdose_size(3) % z축
+%     cla;
+%     imagesc(squeeze(rtdose(:,:,ii)))
+%     pause(0.05)
+% end
+% %%%%%%%%%
 
 %% lec 14 %%
 % plot DVH
